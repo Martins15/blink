@@ -1,0 +1,4 @@
+name = Mysearch
+package = Blinkreaction test
+dependencies[] = node
+core = 7.x

@@ -1,0 +1,65 @@
+<?php
+
+/**
+ * @file
+ * Mysearch module.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function mysearch_permission() {
+  return array(
+    'access mysearch' => array(
+        'title' => 'Access My Search',
+        'description' => 'Allows a user to access search results',
+      )
+    );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function mysearch_menu() {
+  $items['mysearch/%'] = array(
+    'title' => 'Search for "@w"',
+	'title arguments' => array('@w' => 1),
+    'page callback' => 'mysearch_searchpage',
+    'access arguments' => array('access mysearch'),
+	'page arguments' => array(1),
+    'type' => MENU_SUGGESTED_ITEM,
+  );
+  return $items;
+}
+
+/**
+ * Menu callback provides a simple list of nodes matching the
+ * search term Example: hitting the URL:
+ *   http://domain.com/mysearch/example
+ * will return a list of links to nodes which have the word
+ * example in them.
+ */
+function mysearch_searchpage($word) {
+  $query = new EntityFieldQuery();
+  $result = $query->entityCondition('entity_type', 'node')
+  ->propertyCondition('status', 1)
+  ->fieldCondition('body', 'value', $word, 'CONTAINS')
+  ->execute();
+
+   $output = array(
+    '#items' => array(),
+    '#theme' => 'item_list',
+  );
+
+  if (empty($result['node'])) {
+    drupal_set_message(t('No results found.'), 'error');
+  }
+  else {
+    foreach ($result['node'] as $node) {
+      $node = node_load($node->nid);
+	  $output['#items'][] = l($node->title, 'node/' . $node->nid);
+    }
+  }
+
+  return $output;
+}
